@@ -101,3 +101,35 @@ function LogList() {
 ```
 
 ---
+
+## Esercizio 4: Typescript
+
+**Implementazione:**
+
+```typescript
+class Buffer<T> {
+  private data: T[] = [];
+
+  get(index: number): T | undefined {
+    if (index >= 0 && index < this.data.length) {
+      return this.data[index];
+    }
+
+    return undefined;
+  }
+
+  add(element: T): void {
+    this.data.push(element);
+  }
+
+  remove(element: T): void {
+    const index = this.data.indexOf(element);
+
+    if (index > -1) {
+      this.data.splice(index, 1);
+    }
+  }
+}
+```
+
+---
