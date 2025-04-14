@@ -1,37 +1,57 @@
-import { FunctionComponent, useCallback, useMemo, useState } from "react";
-import { customersSample, LOCAL_STORAGE_KEYS } from "./lib/constants";
-import { Customer } from "./lib/types/customer";
+import { FunctionComponent, useCallback, useMemo } from "react";
 import { useLocalStorageState } from "./hook/useLocalStorageState";
+import { LOCAL_STORAGE_KEYS } from "./lib/constants";
+import { Customer } from "./lib/types/customer";
 import { SortableColumn, SortConfig, SortDirection } from "./lib/types/datatable";
 
-type Props = {};
+type Props = {
+  customers: Customer[];
+};
 
-const CustomerDatatable: FunctionComponent<Props> = () => {
+const CustomerDatatable: FunctionComponent<Props> = ({ customers }) => {
   console.log("CustomerDatatable");
-  const [customers, setCustomers] = useState<Customer[]>(customersSample);
 
+  const [filteringState, setFilteringState] = useLocalStorageState<string>(LOCAL_STORAGE_KEYS.FILTER, "");
   const [sortingState, setSortingState] = useLocalStorageState<SortConfig>(LOCAL_STORAGE_KEYS.SORT, {
     column: null,
     direction: "asc"
   });
 
-  const sortedCustomers = useMemo(() => {
-    if (!sortingState.column) {
+  const filteredCustomers = useMemo(() => {
+    const filter = filteringState.trim().toLowerCase();
+    if (!filter) {
       return customers;
     }
 
-    const sortableCustomers = [...customers];
+    return customers.filter((customer) => {
+      const nameMatch = customer.name.toLowerCase().includes(filter);
+      const surnameMatch = customer.surname.toLowerCase().includes(filter);
+      const cityMatch = customer.address.city.toLowerCase().includes(filter);
+
+      return nameMatch || surnameMatch || cityMatch;
+    });
+  }, [customers, filteringState]);
+
+  const sortedAndFilteredCustomers = useMemo(() => {
+    const dataToSort = filteredCustomers;
+
+    if (!sortingState.column) {
+      return dataToSort;
+    }
+
+    const columnKey = sortingState.column;
+    const sortableCustomers = [...dataToSort];
 
     sortableCustomers.sort((a, b) => {
       let aValue: string;
       let bValue: string;
 
-      if (sortingState.column === "city") {
-        aValue = a.address.city.toLocaleLowerCase();
-        bValue = b.address.city.toLocaleLowerCase();
+      if (columnKey === "city") {
+        aValue = a.address.city.toLowerCase();
+        bValue = b.address.city.toLowerCase();
       } else {
-        aValue = a[sortingState.column as keyof Omit<Customer, "address">].toLocaleLowerCase();
-        bValue = b[sortingState.column as keyof Omit<Customer, "address">].toLocaleLowerCase();
+        aValue = a[columnKey].toLowerCase();
+        bValue = b[columnKey].toLowerCase();
       }
 
       let comparison = 0;
@@ -45,7 +65,7 @@ const CustomerDatatable: FunctionComponent<Props> = () => {
     });
 
     return sortableCustomers;
-  }, [customers, sortingState]);
+  }, [filteredCustomers, sortingState]);
 
   const handleSort = useCallback(
     (columnKey: SortableColumn) => {
@@ -62,9 +82,23 @@ const CustomerDatatable: FunctionComponent<Props> = () => {
     [setSortingState]
   );
 
+  const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFilteringState(event.target.value);
+  };
+
   return (
-    <div className="overflow-x-auto mt-6">
+    <div className="overflow-auto mt-6 flex-col gap-1 flex">
       <h1 className="text-3xl font-bold">Customer Datatable</h1>
+
+      <div className="flex justify-end p-1">
+        <input
+          type="text"
+          placeholder="Filter..."
+          value={filteringState}
+          onChange={handleFilterChange}
+          className="border text-sm"
+        />
+      </div>
 
       <table className="min-w-full border">
         <thead className="bg-gray-100">
@@ -99,7 +133,7 @@ const CustomerDatatable: FunctionComponent<Props> = () => {
           </tr>
         </thead>
         <tbody className="bg-white">
-          {sortedCustomers.map((customer) => (
+          {sortedAndFilteredCustomers.map((customer) => (
             <tr key={customer.uuid}>
               <td className="px-4 py-2 text-sm text-gray-800">{customer.name}</td>
               <td className="px-4 py-2 text-sm text-gray-800">{customer.surname}</td>
@@ -108,6 +142,10 @@ const CustomerDatatable: FunctionComponent<Props> = () => {
           ))}
         </tbody>
       </table>
+
+      {filteredCustomers.length === 0 && filteringState && (
+        <p className="m-2 text-gray-600">No customers match your filter.</p>
+      )}
     </div>
   );
 };
