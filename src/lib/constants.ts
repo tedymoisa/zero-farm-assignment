@@ -29,5 +29,6 @@ export const customersSample: Customer[] = [
 
 export enum LOCAL_STORAGE_KEYS {
   SORT = "sortingState",
-  FILTER = "filteringState"
+  FILTER = "filteringState",
+  SELECT = "selectionState"
 }
