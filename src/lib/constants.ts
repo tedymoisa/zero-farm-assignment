@@ -26,3 +26,8 @@ export const customersSample: Customer[] = [
     address: { city: "Firenze", street: "Ponte Vecchio 2" }
   }
 ];
+
+export enum LOCAL_STORAGE_KEYS {
+  SORT = "sortingState",
+  FILTER = "filteringState"
+}
