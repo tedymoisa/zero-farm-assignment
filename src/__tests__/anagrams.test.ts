@@ -38,6 +38,13 @@ describe("areAnagrams", () => {
   });
 });
 
+/*
+Fornire il codice di una funzione in js/ts che, date due stringhe come parametri,
+ritorni se sono o meno anagrammi (possiedono gli stessi caratteri ma in posizioni
+diverse. Deve tornare false se viene inserita la stessa parola in entrambi i parametri)
+
+NOTE: non è CASE SENSITIVE
+*/
 function areAnagrams(str1: string, str2: string): boolean {
   const lowerStr1 = str1.trim().toLowerCase();
   const lowerStr2 = str2.trim().toLowerCase();
